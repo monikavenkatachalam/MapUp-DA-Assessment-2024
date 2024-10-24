@@ -1,7 +1,8 @@
 import pandas as pd
+import datetime as dt
 
 
-#Question 9: Distance Matrix Calculation
+#Que 9:
 
 import pandas as pd
 
@@ -22,70 +23,145 @@ def unroll_distance_matrix(df):
 
 
 try:
-    df = pd.read_csv("C:\Users\monik\Downloads\section2-q9.png")  
+    df = pd.read_csv("D/datasetsataset-2")  
     unrolled_df = unroll_distance_matrix(df)
     print(unrolled_df)
 except FileNotFoundError:
     print("Error: File not found. Please check the file path.")
 
+#que:10
 
-def unroll_distance_matrix(df)->pd.DataFrame():
-    """
-    Unroll a distance matrix to a DataFrame in the style of the initial dataset.
+def calculate_distance_matrix(df):
+def unroll_distance_matrix(df: pd.DataFrame):
+   
+    unrolled_data = []
+    
+    
+    ids = df['id'].values  
+    
+    
+    for i, id_start in enumerate(ids):
+        for j, id_end in enumerate(ids):
+            if id_start != id_end:  
+                distance = df.iloc[i, j + 1]  
+                unrolled_data.append([id_start, id_end, distance])
+    
+    
+    result_df = pd.DataFrame(unrolled_data, columns=['id_start', 'id_end', 'distance'])
+    
+    return result_df
 
-    Args:
-        df (pandas.DataFrame)
+print(result)
 
-    Returns:
-        pandas.DataFrame: Unrolled DataFrame containing columns 'id_start', 'id_end', and 'distance'.
-    """
-    # Write your logic here
 
+#que:11
+
+
+def find_ids_within_ten_percentage_threshold(df: pd.DataFrame, reference_value: int):
+   
+    reference_avg = df[df['id_start'] == reference_value]['id_start'].mean()
+
+    
+    lower_bound = reference_avg * 0.9
+    upper_bound = reference_avg * 1.1
+
+    
+    ids_within_threshold = df[(df['id_start'] >= lower_bound) & (df['id_start'] <= upper_bound)]['id_start']
+
+   
+    return sorted(ids_within_threshold)
+
+
+
+que:12
+
+def calculate_toll_rate(df: pd.DataFrame):
+    
+    rates = {
+        'moto': 0.8,
+        'car': 1.2,
+        'rv': 1.5,
+        'bus': 2.2,
+        'truck': 3.6
+    }
+    
+    
+    df['moto'] = df['distance'] * rates['moto']
+    df['car'] = df['distance'] * rates['car']
+    df['rv'] = df['distance'] * rates['rv']
+    df['bus'] = df['distance'] * rates['bus']
+    df['truck'] = df['distance'] * rates['truck']
+    
     return df
 
 
-def find_ids_within_ten_percentage_threshold(df, reference_id)->pd.DataFrame():
-    """
-    Find all IDs whose average distance lies within 10% of the average distance of the reference ID.
+que:13
 
-    Args:
-        df (pandas.DataFrame)
-        reference_id (int)
+def calculate_time_based_toll_rates(df_ngu: pd.DataFrame):
+    
+    start_days = []
+    end_days = []
+    start_times = []
+    end_times = []
+    modified_rates = []
 
-    Returns:
-        pandas.DataFrame: DataFrame with IDs whose average distance is within the specified percentage threshold
-                          of the reference ID's average distance.
-    """
-    # Write your logic here
+    
+    weekday_discounts = {
+        '00:00:00-10:00:00': 0.8,
+        '10:00:00-18:00:00': 1.2,
+        '18:00:00-23:59:59': 0.8
+    }
+    weekend_discount = 0.7  
 
-    return df
+    
+    weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday']
+    weekends = ['Saturday', 'Sunday']
+    
+   
+    time_intervals = [
+        (dt.time(0, 0), dt.time(10, 0)),
+        (dt.time(10, 0), dt.time(18, 0)),
+        (dt.time(18, 0), dt.time(23, 59))
+    ]
+    
+    
+    for index, row in df_ngu.iterrows():
+        base_rate = row['toll_rate'] 
+        
+        
+        for day in weekdays + weekends:
+            for (start_time, end_time) in time_intervals:
+                start_days.append(day)
+                end_days.append(day)
+                start_times.append(start_time)
+                end_times.append(end_time)
+                
+                
+                if day in weekdays:
+                    if start_time == dt.time(0, 0):
+                        discount_factor = weekday_discounts['00:00:00-10:00:00']
+                    elif start_time == dt.time(10, 0):
+                        discount_factor = weekday_discounts['10:00:00-18:00:00']
+                    else:
+                        discount_factor = weekday_discounts['18:00:00-23:59:59']
+                else:
+                    discount_factor = weekend_discount
+                
+               
+                modified_rate = base_rate * discount_factor
+                modified_rates.append(modified_rate)
+    
+    
+    result_df = pd.DataFrame({
+        'start_day': start_days,
+        'end_day': end_days,
+        'start_time': start_times,
+        'end_time': end_times,
+        'modified_toll_rate': modified_rates
+    })
+    
+    
+    final_df = pd.concat([df_ngu, result_df], axis=1)
+    
+    return final_df
 
-
-def calculate_toll_rate(df)->pd.DataFrame():
-    """
-    Calculate toll rates for each vehicle type based on the unrolled DataFrame.
-
-    Args:
-        df (pandas.DataFrame)
-
-    Returns:
-        pandas.DataFrame
-    """
-    # Wrie your logic here
-
-    return df
-
-
-def calculate_time_based_toll_rates(df)->pd.DataFrame():
-    """
-    Calculate time-based toll rates for different time intervals within a day.
-
-    Args:
-        df (pandas.DataFrame)
-
-    Returns:
-        pandas.DataFrame
-    """
-    # Write your logic here
-
-    return df
